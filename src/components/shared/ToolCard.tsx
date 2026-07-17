@@ -43,7 +43,7 @@ function ToolPreview({ category }: { category: string }) {
 
 export function ToolCard({ title, href, category, featured = false, description = 'Open workspace', meta = 'Ready' }: ToolCardProps) {
   return (
-    <Card className={`tool-card ${featured ? 'tool-card-featured' : ''}`}>
+    <Card className={`tool-card tool-card-${category} ${featured ? 'tool-card-featured' : ''}`}>
       <div className="tool-card-copy">
         <span className="card-meta">{meta}</span>
         <h2>{title}</h2>
