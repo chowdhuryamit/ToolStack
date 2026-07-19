@@ -141,7 +141,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'git',
-        element: <RoutePlaceholder title="Git" />,
+        element: <CommitGraphPage />,
       },
       {
         path: 'git/visualizer',
@@ -149,7 +149,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'git/simulator',
-        element: <RoutePlaceholder title="Git Simulator" />,
+        element: <CommitGraphPage />,
       },
       {
         path: 'git/learn',
