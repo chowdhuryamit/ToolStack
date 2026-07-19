@@ -68,7 +68,7 @@ export function RootLayout() {
         <ChatAssistantPage />
       </aside>
       <CommandPalette />
-      <Toast />
+      <Toast accent={getRouteAccent(pathname)} />
     </div>
   )
 }

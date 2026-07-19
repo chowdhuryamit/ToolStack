@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -7,6 +6,7 @@ import {
   limit,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   type Timestamp,
 } from 'firebase/firestore'
@@ -50,6 +50,25 @@ function decodeJsonDiff(content: string): StoredJsonDiff | null {
   }
 }
 
+function sortJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortJsonValue)
+  if (typeof value !== 'object' || value === null) return value
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, child]) => [key, sortJsonValue(child)]),
+  )
+}
+
+function canonicalJson(content: string) {
+  return JSON.stringify(sortJsonValue(JSON.parse(content) as unknown))
+}
+
+async function sha256(value: string) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
 function requireUserId() {
   const userId = auth.currentUser?.uid
   if (!userId) throw new Error('Sign in before saving JSON.')
@@ -67,26 +86,43 @@ function jsonDiffCollection(userId: string) {
 export const firebaseSnippetRepository = {
   async save(title: string, content: string) {
     const userId = requireUserId()
-    const reference = await addDoc(jsonCollection(userId), {
-      title,
-      type: 'json',
-      content,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    const canonicalContent = canonicalJson(content)
+    const fingerprint = await sha256(canonicalContent)
+    const reference = doc(firestore, 'users', userId, 'json', fingerprint)
+
+    await runTransaction(firestore, async (transaction) => {
+      const existing = await transaction.get(reference)
+      if (existing.exists()) throw new Error('This JSON is already saved in your formatter collection.')
+      transaction.set(reference, {
+        title,
+        type: 'json',
+        content,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
     })
     return reference.id
   },
 
   async saveDiff(title: string, original: string, modified: string) {
     const userId = requireUserId()
+    const canonicalOriginal = canonicalJson(original)
+    const canonicalModified = canonicalJson(modified)
     const content = encodeJsonDiff(original, modified)
     if (content.length > 900000) throw new Error('This comparison is too large to save. Keep the combined JSON under 900 KB.')
-    const reference = await addDoc(jsonDiffCollection(userId), {
-      title,
-      type: 'json-diff',
-      content,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    const fingerprint = await sha256(JSON.stringify([canonicalOriginal, canonicalModified]))
+    const reference = doc(firestore, 'users', userId, 'json-diff', fingerprint)
+
+    await runTransaction(firestore, async (transaction) => {
+      const existing = await transaction.get(reference)
+      if (existing.exists()) throw new Error('This JSON comparison is already saved in your diff collection.')
+      transaction.set(reference, {
+        title,
+        type: 'json-diff',
+        content,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
     })
     return reference.id
   },

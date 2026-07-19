@@ -58,7 +58,7 @@ export function SavedSnippetsPage() {
       {isLoading ? <p className="muted">Loading saved JSON…</p> : snippets.length === 0 ? (
         <section className="empty-state"><Braces size={36} /><h2>No saved JSON yet</h2><p>Format JSON, then select Save.</p></section>
       ) : (
-        <div className="tool-grid">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {snippets.map((snippet) => (
             <article className="tool-panel grid gap-3" key={snippet.id}>
               <div className="panel-header">

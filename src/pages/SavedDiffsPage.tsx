@@ -63,7 +63,7 @@ export function SavedDiffsPage() {
       {isLoading ? <p className="muted">Loading saved comparisons…</p> : comparisons.length === 0 ? (
         <section className="empty-state"><GitCompareArrows size={36} /><h2>No saved comparisons yet</h2><p>Compare two JSON documents, then select Save.</p></section>
       ) : (
-        <div className="tool-grid">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {comparisons.map((comparison) => (
             <article className="tool-panel grid gap-3" key={comparison.id}>
               <div className="panel-header">

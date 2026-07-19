@@ -243,8 +243,8 @@ export function JsonFormatterPage() {
         />
         <div className={cn(
           'flex min-h-8 min-w-0 flex-1 items-center gap-2 rounded-lg border px-3 py-1 text-xs leading-tight transition-colors',
-          validation.state === 'valid' && (isAppLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'),
-          validation.state === 'invalid' && (isAppLightTheme ? 'border-red-300 bg-red-50 text-red-700' : 'border-red-500/40 bg-red-500/10 text-red-300'),
+          validation.state === 'valid' && 'tool-status-accent',
+          validation.state === 'invalid' && 'tool-status-error',
           validation.state === 'idle' && (isAppLightTheme ? 'border-slate-300 bg-white text-slate-600' : 'border-slate-700 text-slate-400'),
         )} role="status">
           {validation.state === 'valid' ? <CheckCircle2 className="shrink-0" size={17} /> : validation.state === 'invalid' ? <TriangleAlert className="shrink-0" size={17} /> : <ShieldCheck className="shrink-0" size={17} />}
