@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Braces, Copy, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
-import { firebaseSnippetRepository, type CloudSnippet } from '../firebase/snippetRepository'
+import { firebaseSnippetRepository, type CloudJsonSnippet } from '../firebase/snippetRepository'
 import { clipboardService } from '../services/clipboardService'
 import { useAppDispatch } from '../store/hooks'
 import { addNotification } from '../store/slices/notificationSlice'
@@ -10,7 +10,7 @@ import { addNotification } from '../store/slices/notificationSlice'
 const OPEN_SNIPPET_KEY = 'toolstack.openJsonSnippet'
 
 export function SavedSnippetsPage() {
-  const [snippets, setSnippets] = useState<CloudSnippet[]>([])
+  const [snippets, setSnippets] = useState<CloudJsonSnippet[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -22,12 +22,12 @@ export function SavedSnippetsPage() {
       .finally(() => setIsLoading(false))
   }, [dispatch])
 
-  function openSnippet(snippet: CloudSnippet) {
+  function openSnippet(snippet: CloudJsonSnippet) {
     sessionStorage.setItem(OPEN_SNIPPET_KEY, snippet.content)
     navigate('/tools/json-formatter', { state: { intent: 'open-snippet' } })
   }
 
-  async function copySnippet(snippet: CloudSnippet) {
+  async function copySnippet(snippet: CloudJsonSnippet) {
     try {
       await clipboardService.copy(snippet.content)
       dispatch(addNotification(`Copied “${snippet.title}”.`, 'success'))
@@ -51,7 +51,7 @@ export function SavedSnippetsPage() {
       <div className="section-heading">
         <p className="eyebrow">Your cloud workspace</p>
         <h1 className='!text-4xl font-bold'>Saved JSON</h1>
-        <p className="muted">JSON snippets saved securely to your Firebase account.</p>
+        <p className="muted">Formatted JSON documents saved securely to your Firebase account.</p>
         <div><Button variant="secondary" onClick={() => navigate('/tools/json-formatter')}><ArrowLeft size={16} />Back to formatter</Button></div>
       </div>
 

@@ -82,13 +82,13 @@ ul {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 232px minmax(0, 1fr);
   min-height: 100vh;
   transition: grid-template-columns 150ms ease-in-out;
 }
 
 .app-shell-collapsed {
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 .sidebar {
@@ -96,7 +96,7 @@ ul {
   backdrop-filter: blur(24px);
   border-right: 1px solid var(--border);
   color: var(--text);
-  padding: 20px;
+  padding: 16px;
   position: sticky;
   top: 0;
   height: 100vh;

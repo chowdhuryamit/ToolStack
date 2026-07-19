@@ -6,6 +6,7 @@ import { useAuth } from '../../../../auth/authContext'
 import { Button } from '../../../../components/ui/Button'
 import { Input } from '../../../../components/ui/Input'
 import { Modal } from '../../../../components/ui/Modal'
+import { ThemeToggle } from '../../../../components/ui/ThemeToggle'
 import { isFirebaseConfigured } from '../../../../firebase/config'
 import { firebaseSnippetRepository } from '../../../../firebase/snippetRepository'
 import { clipboardService } from '../../../../services/clipboardService'
@@ -28,6 +29,7 @@ const PENDING_SAVE_KEY = 'toolstack.pendingJsonSave'
 const OPEN_SNIPPET_KEY = 'toolstack.openJsonSnippet'
 const DRAFT_INPUT_KEY = 'toolstack.jsonFormatter.input'
 const DRAFT_OUTPUT_KEY = 'toolstack.jsonFormatter.output'
+const EDITOR_SURFACE_THEME_KEY = 'toolstack.jsonFormatter.editorTheme'
 
 export function JsonFormatterPage() {
   const location = useLocation()
@@ -50,12 +52,16 @@ export function JsonFormatterPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [savedJsonOwnerId, setSavedJsonOwnerId] = useState<string>()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [editorSurfaceTheme, setEditorSurfaceTheme] = useState<'dark' | 'light'>(() => (
+    localStorage.getItem(EDITOR_SURFACE_THEME_KEY) === 'light' ? 'light' : 'dark'
+  ))
   const gridRef = useRef<HTMLDivElement>(null)
   const dispatch = useAppDispatch()
   const editorTheme = useAppSelector((state) => state.theme.editorTheme)
   const editorPreferences = useAppSelector((state) => state.editor)
   const { user } = useAuth()
-  const isLightTheme = editorTheme === 'vs-light'
+  const isAppLightTheme = editorTheme === 'vs-light'
+  const isEditorSurfaceLight = editorSurfaceTheme === 'light'
 
   const validation = useMemo(() => {
     if (!input.trim()) return { state: 'idle' as const, message: 'Start typing to validate your JSON.' }
@@ -101,6 +107,10 @@ export function JsonFormatterPage() {
     if (output) sessionStorage.setItem(DRAFT_OUTPUT_KEY, output)
     else sessionStorage.removeItem(DRAFT_OUTPUT_KEY)
   }, [output])
+
+  useEffect(() => {
+    localStorage.setItem(EDITOR_SURFACE_THEME_KEY, editorSurfaceTheme)
+  }, [editorSurfaceTheme])
 
   useEffect(() => {
     if (!user || !isFirebaseConfigured) return
@@ -225,31 +235,38 @@ export function JsonFormatterPage() {
       'json-workspace -mt-[18px] -mb-5 grid min-h-[calc(100vh-90px)] w-full max-w-none gap-2.5 pb-1 max-[980px]:min-h-[calc(100vh-184px)]',
       isExpanded && 'json-workspace-expanded',
     )}>
-      <div className={cn(
-        'flex !min-h-8 items-center gap-2 rounded-lg border !px-3 !py-1 text-xs leading-tight transition-colors',
-        validation.state === 'valid' && (isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'),
-        validation.state === 'invalid' && (isLightTheme ? 'border-red-300 bg-red-50 text-red-700' : 'border-red-500/40 bg-red-500/10 text-red-300'),
-        validation.state === 'idle' && (isLightTheme ? 'border-slate-300 bg-white text-slate-600' : 'border-slate-700 text-slate-400'),
-      )} role="status">
-        {validation.state === 'valid' ? <CheckCircle2 size={17} /> : validation.state === 'invalid' ? <TriangleAlert size={17} /> : <ShieldCheck size={17} />}
-        <span>{validation.message}</span>
-        <div className="ml-auto flex items-center gap-1">
-          {user && savedJsonOwnerId === user.uid && (
-            <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => navigate('/tools/json-formatter/saved-data')}>
-              <Bookmark size={14} />Saved JSON
+      <div className="flex min-w-0 items-center gap-2.5 max-[640px]:items-start">
+        <ThemeToggle
+          isLight={isEditorSurfaceLight}
+          label="JSON input and output theme"
+          onChange={(isLight) => setEditorSurfaceTheme(isLight ? 'light' : 'dark')}
+        />
+        <div className={cn(
+          'flex min-h-8 min-w-0 flex-1 items-center gap-2 rounded-lg border px-3 py-1 text-xs leading-tight transition-colors',
+          validation.state === 'valid' && (isAppLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'),
+          validation.state === 'invalid' && (isAppLightTheme ? 'border-red-300 bg-red-50 text-red-700' : 'border-red-500/40 bg-red-500/10 text-red-300'),
+          validation.state === 'idle' && (isAppLightTheme ? 'border-slate-300 bg-white text-slate-600' : 'border-slate-700 text-slate-400'),
+        )} role="status">
+          {validation.state === 'valid' ? <CheckCircle2 className="shrink-0" size={17} /> : validation.state === 'invalid' ? <TriangleAlert className="shrink-0" size={17} /> : <ShieldCheck className="shrink-0" size={17} />}
+          <span className="min-w-0 truncate">{validation.message}</span>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {user && savedJsonOwnerId === user.uid && (
+              <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => navigate('/tools/json-formatter/saved-data')}>
+                <Bookmark size={14} />Saved JSON
+              </Button>
+            )}
+            <Button
+              className="!min-h-7 !px-2 !py-1"
+              variant="ghost"
+              aria-label={isExpanded ? 'Exit expanded view' : 'Expand JSON workspace'}
+              aria-pressed={isExpanded}
+              title={isExpanded ? 'Exit expanded view (Esc)' : 'Expand JSON workspace'}
+              onClick={() => setIsExpanded((expanded) => !expanded)}
+            >
+              {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              {isExpanded ? 'Collapse' : 'Expand'}
             </Button>
-          )}
-          <Button
-            className="!min-h-7 !px-2 !py-1"
-            variant="ghost"
-            aria-label={isExpanded ? 'Exit expanded view' : 'Expand JSON workspace'}
-            aria-pressed={isExpanded}
-            title={isExpanded ? 'Exit expanded view (Esc)' : 'Expand JSON workspace'}
-            onClick={() => setIsExpanded((expanded) => !expanded)}
-          >
-            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-            {isExpanded ? 'Collapse' : 'Expand'}
-          </Button>
+          </div>
         </div>
       </div>
 
@@ -262,11 +279,16 @@ export function JsonFormatterPage() {
         } as CSSProperties}
       >
         <section className="tool-panel grid h-full min-w-0 content-start grid-rows-[auto_auto_auto] !gap-2 !p-3">
-          <div className="panel-header !min-h-7"><h2>JSON input</h2><Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => setInput(exampleJson)}><Sparkles size={15} />Example</Button></div>
-          <div className={cn('json-editor-shell h-[max(380px,calc(100vh-280px))] min-h-45 resize-y overflow-hidden rounded-xl border focus-within:border-indigo-500 focus-within:ring-3 focus-within:ring-indigo-500/10', isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-[#1e1e1e]')}>
-            <Editor language="json" theme={editorTheme} value={input} onChange={(value) => setInput(value ?? '')} options={editorOptions()} />
+          <div className="panel-header !min-h-7">
+            <h2>JSON input</h2>
+            <div className="flex items-center gap-1">
+              <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => setInput(exampleJson)}><Sparkles size={15} />Example</Button>
+            </div>
           </div>
-          <div className="utility-actions">
+          <div className={cn('json-editor-shell h-[max(380px,calc(100vh-280px))] min-h-45 resize-y overflow-hidden rounded-xl border focus-within:border-indigo-500 focus-within:ring-3 focus-within:ring-indigo-500/10', isEditorSurfaceLight ? 'border-slate-300 bg-white' : 'border-slate-700 bg-[#1e1e1e]')}>
+            <Editor language="json" theme={isEditorSurfaceLight ? 'vs-light' : 'vs-dark'} value={input} onChange={(value) => setInput(value ?? '')} options={editorOptions()} />
+          </div>
+          <div className="utility-actions mt-2">
             <Button disabled={validation.state !== 'valid'} onClick={() => processJson(false)}>Format &amp; Validate</Button>
             <Button variant="secondary" disabled={validation.state !== 'valid'} onClick={() => processJson(true)}>Minify</Button>
             <Button variant="secondary" disabled={validation.state !== 'valid'} onClick={beginSave}><Save size={16} />Save</Button>
@@ -278,12 +300,14 @@ export function JsonFormatterPage() {
 
         <section className="tool-panel grid h-full min-w-0 content-start grid-rows-[auto_auto_auto] !gap-2 !p-3">
           <div className="panel-header !min-h-7 !justify-between">
-            <Button className="!min-h-7 !px-2 !py-1" variant="secondary" aria-label="Copy output" title="Copy output" disabled={!output} onClick={() => void copyOutput()}><Copy size={15} /></Button>
-            <h2 className="mx-1">Output</h2>
-            <Button className="!min-h-7 !px-2 !py-1" variant="secondary" aria-label="Download output" title="Download output" disabled={!output} onClick={downloadOutput}><Download size={15} /></Button>
+            <h2>Output</h2>
+            <div className="flex items-center gap-1">
+              <Button className="!min-h-7 !px-2 !py-1" variant="secondary" aria-label="Copy output" title="Copy output" disabled={!output} onClick={() => void copyOutput()}><Copy size={15} /></Button>
+              <Button className="!min-h-7 !px-2 !py-1" variant="secondary" aria-label="Download output" title="Download output" disabled={!output} onClick={downloadOutput}><Download size={15} /></Button>
+            </div>
           </div>
-          <div className={cn('json-editor-shell h-[max(380px,calc(100vh-280px))] min-h-45 resize-y overflow-hidden rounded-xl border focus-within:border-indigo-500 focus-within:ring-3 focus-within:ring-indigo-500/10', isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-[#1e1e1e]')}>
-            <Editor language="json" theme={editorTheme} value={output} onChange={(value) => setOutput(value ?? '')} options={editorOptions()} />
+          <div className={cn('json-editor-shell h-[max(380px,calc(100vh-280px))] min-h-45 resize-y overflow-hidden rounded-xl border focus-within:border-indigo-500 focus-within:ring-3 focus-within:ring-indigo-500/10', isEditorSurfaceLight ? 'border-slate-300 bg-white' : 'border-slate-700 bg-[#1e1e1e]')}>
+            <Editor language="json" theme={isEditorSurfaceLight ? 'vs-light' : 'vs-dark'} value={output} onChange={(value) => setOutput(value ?? '')} options={editorOptions()} />
           </div>
           <div className="min-h-10" aria-hidden="true" />
         </section>

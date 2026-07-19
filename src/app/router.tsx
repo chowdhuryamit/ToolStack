@@ -4,7 +4,7 @@ import { LearningLayout } from '../layouts/LearningLayout'
 import { PlaygroundLayout } from '../layouts/PlaygroundLayout'
 import { RootLayout } from '../layouts/RootLayout'
 import { EmptyState } from '../components/shared/EmptyState'
-import { ConfiguredDeveloperTool, DeveloperToolsIndexPage, JsonFormatterPage, toolConfigs } from '../modules/developer-tools'
+import { ConfiguredDeveloperTool, DeveloperToolsIndexPage, JsonDiffPage, JsonFormatterPage, toolConfigs } from '../modules/developer-tools'
 import { ClampGeneratorPage } from '../modules/css-studio'
 import { RestClientPage } from '../modules/api-playground'
 import { CommitGraphPage } from '../modules/git-visualizer'
@@ -15,6 +15,7 @@ import { ChatAssistantPage } from '../modules/ai-assistant'
 import { RoutePlaceholder } from '../components/shared/RoutePlaceholder'
 import { AuthPage } from '../pages/AuthPage'
 import { SavedSnippetsPage } from '../pages/SavedSnippetsPage'
+import { SavedDiffsPage } from '../pages/SavedDiffsPage'
 import { RequireAuth } from '../auth/RequireAuth'
 
 export const router = createBrowserRouter([
@@ -52,7 +53,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'tools/json-diff',
-        element: <ConfiguredDeveloperTool config={toolConfigs['json-diff']} />,
+        element: <JsonDiffPage />,
+      },
+      {
+        path: 'tools/json-diff/saved-data',
+        element: <RequireAuth><SavedDiffsPage /></RequireAuth>,
       },
       {
         path: 'tools/regex-tester',

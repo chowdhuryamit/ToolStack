@@ -14,7 +14,7 @@ type AuthPageProps = {
 
 type AuthLocationState = {
   returnTo?: string
-  intent?: 'save-json'
+  intent?: 'save-json' | 'save-json-diff'
 }
 
 export function AuthPage({ mode }: AuthPageProps) {
@@ -90,8 +90,8 @@ export function AuthPage({ mode }: AuthPageProps) {
         <p className="eyebrow">ToolStack account</p>
         <h1>{isSignup ? 'Create your account' : 'Welcome back'}</h1>
         <p className="muted">
-          {state?.intent === 'save-json'
-            ? 'Sign in to save your JSON securely and access it on other devices.'
+          {state?.intent === 'save-json' || state?.intent === 'save-json-diff'
+            ? `Sign in to save your ${state.intent === 'save-json-diff' ? 'JSON comparison' : 'JSON'} securely and access it on other devices.`
             : 'Public tools stay available without an account. Sign in to save your work.'}
         </p>
       </div>

@@ -4,4 +4,5 @@ export const developerToolsModule = {
 }
 
 export * from './json-formatter'
+export * from './json-diff'
 export * from './mvp'

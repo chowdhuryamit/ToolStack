@@ -24,6 +24,7 @@ const developerToolAccents: Record<string, string> = {
 }
 
 function getRouteAccent(pathname: string) {
+  if (pathname.startsWith('/tools/json-diff')) return developerToolAccents['json-diff']
   if (pathname.startsWith('/tools/')) {
     const slug = pathname.split('/').filter(Boolean).at(-1) ?? ''
     return developerToolAccents[slug] ?? '#4d90dd'

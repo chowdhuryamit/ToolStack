@@ -8,7 +8,7 @@ service cloud.firestore {
       }
 
       function isSupportedType() {
-        return dataType in ['json', 'css', 'regex', 'react', 'api'];
+        return dataType in ['json', 'json-diff', 'css', 'regex', 'react', 'api'];
       }
 
       function hasValidFields() {
