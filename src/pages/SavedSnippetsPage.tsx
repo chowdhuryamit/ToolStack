@@ -60,12 +60,12 @@ export function SavedSnippetsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {snippets.map((snippet) => (
-            <article className="tool-panel grid gap-3" key={snippet.id}>
-              <div className="panel-header">
-                <Braces size={18} />
-                <h2>{snippet.title}</h2>
+            <article className="tool-panel grid min-w-0 gap-3 overflow-hidden" key={snippet.id}>
+              <div className="panel-header min-w-0">
+                <Braces className="shrink-0" size={18} />
+                <h2 className="min-w-0 flex-1 truncate" title={snippet.title}>{snippet.title}</h2>
                 <Button
-                  className="ml-auto !min-h-7 !px-2 !py-1"
+                  className="ml-auto shrink-0 !min-h-7 !px-2 !py-1"
                   variant="ghost"
                   aria-label={`Copy ${snippet.title}`}
                   title="Copy JSON"

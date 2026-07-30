@@ -65,12 +65,12 @@ export function SavedDiffsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {comparisons.map((comparison) => (
-            <article className="tool-panel grid gap-3" key={comparison.id}>
-              <div className="panel-header">
-                <GitCompareArrows size={18} />
-                <h2>{comparison.title}</h2>
+            <article className="tool-panel grid min-w-0 gap-3 overflow-hidden" key={comparison.id}>
+              <div className="panel-header min-w-0">
+                <GitCompareArrows className="shrink-0" size={18} />
+                <h2 className="min-w-0 flex-1 truncate" title={comparison.title}>{comparison.title}</h2>
                 <Button
-                  className="ml-auto !min-h-7 !px-2 !py-1"
+                  className="ml-auto shrink-0 !min-h-7 !px-2 !py-1"
                   variant="ghost"
                   aria-label={`Copy ${comparison.title}`}
                   title="Copy comparison"

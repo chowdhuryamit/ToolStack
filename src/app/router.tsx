@@ -4,7 +4,7 @@ import { LearningLayout } from '../layouts/LearningLayout'
 import { PlaygroundLayout } from '../layouts/PlaygroundLayout'
 import { RootLayout } from '../layouts/RootLayout'
 import { EmptyState } from '../components/shared/EmptyState'
-import { ConfiguredDeveloperTool, DeveloperToolsIndexPage, JsonDiffPage, JsonFormatterPage, JwtDecoderPage, RegexTesterPage, toolConfigs } from '../modules/developer-tools'
+import { CodeDiffPage, ConfiguredDeveloperTool, DeveloperToolsIndexPage, JsonDiffPage, JsonFormatterPage, JwtDecoderPage, RegexTesterPage, toolConfigs } from '../modules/developer-tools'
 import { ClampGeneratorPage } from '../modules/css-studio'
 import { RestClientPage } from '../modules/api-playground'
 import { CommitGraphPage } from '../modules/git-visualizer'
@@ -54,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: 'tools/json-diff',
         element: <JsonDiffPage />,
+      },
+      {
+        path: 'tools/code-diff',
+        element: <CodeDiffPage />,
       },
       {
         path: 'tools/json-diff/saved-data',

@@ -5,6 +5,7 @@ export const developerToolsModule = {
 
 export * from './json-formatter'
 export * from './json-diff'
+export * from './code-diff'
 export * from './regex-tester'
 export * from './jwt-decoder'
 export * from './mvp'
