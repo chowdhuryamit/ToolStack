@@ -1,7 +1,7 @@
 import Editor from '@monaco-editor/react'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bookmark, CheckCircle2, Copy, Download, Maximize2, Minimize2, RotateCcw, Save, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
+import { Bookmark, CheckCircle2, Copy, Download, FileUp, Maximize2, Minimize2, RotateCcw, Save, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
 import { useAuth } from '../../../../auth/authContext'
 import { Button } from '../../../../components/ui/Button'
 import { Input } from '../../../../components/ui/Input'
@@ -56,6 +56,7 @@ export function JsonFormatterPage() {
     localStorage.getItem(EDITOR_SURFACE_THEME_KEY) === 'light' ? 'light' : 'dark'
   ))
   const gridRef = useRef<HTMLDivElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
   const dispatch = useAppDispatch()
   const editorTheme = useAppSelector((state) => state.theme.editorTheme)
   const editorPreferences = useAppSelector((state) => state.editor)
@@ -147,6 +148,18 @@ export function JsonFormatterPage() {
     sessionStorage.removeItem(DRAFT_OUTPUT_KEY)
     setInput('')
     setOutput('')
+  }
+
+  async function importJsonFile(file?: File) {
+    if (!file) return
+    try {
+      const content = await file.text()
+      setInput(content)
+      setOutput('')
+      dispatch(addNotification(`Imported ${file.name}.`, 'success'))
+    } catch {
+      dispatch(addNotification('Unable to read the selected JSON file.', 'error'))
+    }
   }
 
   async function copyOutput() {
@@ -282,6 +295,17 @@ export function JsonFormatterPage() {
           <div className="panel-header !min-h-7">
             <h2>JSON input</h2>
             <div className="flex items-center gap-1">
+              <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => importInputRef.current?.click()}><FileUp size={15} />Import</Button>
+              <input
+                ref={importInputRef}
+                hidden
+                type="file"
+                accept="application/json,.json"
+                onChange={(event) => {
+                  void importJsonFile(event.target.files?.[0])
+                  event.target.value = ''
+                }}
+              />
               <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={() => setInput(exampleJson)}><Sparkles size={15} />Example</Button>
             </div>
           </div>

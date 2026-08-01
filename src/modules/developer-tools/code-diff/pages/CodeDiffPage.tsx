@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Columns2,
   FileCode2,
+  FileUp,
   GitCompareArrows,
   Maximize2,
   Minimize2,
@@ -15,7 +16,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../../components/ui/Button'
 import { Select } from '../../../../components/ui/Select'
 import { ThemeToggle } from '../../../../components/ui/ThemeToggle'
-import { useAppSelector } from '../../../../store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../../store/hooks'
+import { addNotification } from '../../../../store/slices/notificationSlice'
 import { cn } from '../../../../utilities/cn'
 
 const ORIGINAL_DRAFT_KEY = 'toolstack.codeDiff.original'
@@ -67,6 +69,35 @@ const initialLanguages: LanguageOption[] = [
   { id: 'shell', label: 'Shell' },
 ]
 
+const languageByExtension: Record<string, string> = {
+  c: 'c',
+  cc: 'cpp',
+  cpp: 'cpp',
+  cs: 'csharp',
+  css: 'css',
+  go: 'go',
+  h: 'cpp',
+  hpp: 'cpp',
+  html: 'html',
+  java: 'java',
+  js: 'javascript',
+  json: 'json',
+  jsx: 'javascript',
+  md: 'markdown',
+  php: 'php',
+  py: 'python',
+  rb: 'ruby',
+  rs: 'rust',
+  sh: 'shell',
+  sql: 'sql',
+  ts: 'typescript',
+  tsx: 'typescript',
+  txt: 'plaintext',
+  xml: 'xml',
+  yaml: 'yaml',
+  yml: 'yaml',
+}
+
 export function CodeDiffPage() {
   const [original, setOriginal] = useState(() => sessionStorage.getItem(ORIGINAL_DRAFT_KEY) ?? '')
   const [modified, setModified] = useState(() => sessionStorage.getItem(MODIFIED_DRAFT_KEY) ?? '')
@@ -80,6 +111,9 @@ export function CodeDiffPage() {
     localStorage.getItem(EDITOR_SURFACE_THEME_KEY) === 'light' ? 'light' : 'dark'
   ))
   const subscriptions = useRef<Array<{ dispose: () => void }>>([])
+  const originalImportRef = useRef<HTMLInputElement>(null)
+  const modifiedImportRef = useRef<HTMLInputElement>(null)
+  const dispatch = useAppDispatch()
   const editorPreferences = useAppSelector((state) => state.editor)
   const editorTheme = useAppSelector((state) => state.theme.editorTheme)
   const isAppLightTheme = editorTheme === 'vs-light'
@@ -186,6 +220,22 @@ export function CodeDiffPage() {
     setModified(modifiedExample)
   }
 
+  async function importCodeFile(side: 'original' | 'modified', file?: File) {
+    if (!file) return
+    try {
+      const content = await file.text()
+      const extension = file.name.split('.').pop()?.toLowerCase()
+      const detectedLanguage = extension ? languageByExtension[extension] : undefined
+      if (detectedLanguage) setLanguage(detectedLanguage)
+      setChangedRegions(null)
+      if (side === 'original') setOriginal(content)
+      else setModified(content)
+      dispatch(addNotification(`Imported ${file.name} as the ${side} file.`, 'success'))
+    } catch {
+      dispatch(addNotification('Unable to read the selected code file.', 'error'))
+    }
+  }
+
   function swapFiles() {
     setChangedRegions(null)
     setOriginal(modified)
@@ -254,12 +304,36 @@ export function CodeDiffPage() {
 
       <section className="tool-panel grid h-full min-h-0 grid-rows-[auto_minmax(380px,1fr)_auto] !gap-2 !p-3">
         <div className="grid grid-cols-2 gap-6 max-[700px]:gap-3">
-          <div className="panel-header !min-h-7"><h2>Original code</h2></div>
+          <div className="panel-header !min-h-7">
+            <h2>Original code</h2>
+            <Button className="mr-15 !min-h-7 !px-2 !py-1" variant="ghost" onClick={() => originalImportRef.current?.click()}><FileUp size={15} />Import</Button>
+            <input
+              ref={originalImportRef}
+              hidden
+              type="file"
+              onChange={(event) => {
+                void importCodeFile('original', event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+          </div>
           <div className="panel-header !min-h-7">
             <h2>Changed code</h2>
-            <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={loadExample}>
-              <Sparkles size={15} />Example
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button className="mr-2 !min-h-7 !px-2 !py-1" variant="ghost" onClick={() => modifiedImportRef.current?.click()}><FileUp size={15} />Import</Button>
+              <input
+                ref={modifiedImportRef}
+                hidden
+                type="file"
+                onChange={(event) => {
+                  void importCodeFile('modified', event.target.files?.[0])
+                  event.target.value = ''
+                }}
+              />
+              <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={loadExample}>
+                <Sparkles size={15} />Example
+              </Button>
+            </div>
           </div>
         </div>
 

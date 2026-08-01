@@ -1,5 +1,5 @@
 import { DiffEditor, type DiffOnMount } from '@monaco-editor/react'
-import { ArrowLeftRight, Bookmark, CheckCircle2, GitCompareArrows, Maximize2, Minimize2, RotateCcw, Save, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
+import { ArrowLeftRight, Bookmark, CheckCircle2, FileUp, GitCompareArrows, Maximize2, Minimize2, RotateCcw, Save, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../auth/authContext'
@@ -73,6 +73,8 @@ export function JsonDiffPage() {
     localStorage.getItem(EDITOR_SURFACE_THEME_KEY) === 'light' ? 'light' : 'dark'
   ))
   const modelSubscriptions = useRef<Array<{ dispose: () => void }>>([])
+  const originalImportRef = useRef<HTMLInputElement>(null)
+  const modifiedImportRef = useRef<HTMLInputElement>(null)
   const dispatch = useAppDispatch()
   const editorTheme = useAppSelector((state) => state.theme.editorTheme)
   const editorPreferences = useAppSelector((state) => state.editor)
@@ -187,6 +189,18 @@ export function JsonDiffPage() {
     setModified(modifiedExample)
   }
 
+  async function importJsonFile(side: 'original' | 'modified', file?: File) {
+    if (!file) return
+    try {
+      const content = await file.text()
+      if (side === 'original') setOriginal(content)
+      else setModified(content)
+      dispatch(addNotification(`Imported ${file.name} as the ${side === 'original' ? 'original' : 'changed'} JSON.`, 'success'))
+    } catch {
+      dispatch(addNotification('Unable to read the selected JSON file.', 'error'))
+    }
+  }
+
   function reset() {
     setOriginal('')
     setModified('')
@@ -282,10 +296,36 @@ export function JsonDiffPage() {
 
       <section className="tool-panel grid h-full min-h-0 grid-rows-[auto_minmax(380px,1fr)_auto] !gap-2 !p-3">
         <div className="grid grid-cols-2 gap-6 max-[700px]:gap-3">
-          <div className="panel-header !min-h-7"><h2>Original JSON</h2></div>
+          <div className="panel-header !min-h-7">
+            <h2>Original JSON</h2>
+            <Button className="mr-15 !min-h-7 !px-2 !py-1" variant="ghost" onClick={() => originalImportRef.current?.click()}><FileUp size={15} />Import</Button>
+            <input
+              ref={originalImportRef}
+              hidden
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                void importJsonFile('original', event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+          </div>
           <div className="panel-header !min-h-7">
             <h2>Changed JSON</h2>
-            <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={loadExample}><Sparkles size={15} />Example</Button>
+            <div className="flex items-center gap-1">
+              <Button className="mr-2 !min-h-7 !px-2 !py-1" variant="ghost" onClick={() => modifiedImportRef.current?.click()}><FileUp size={15} />Import</Button>
+              <input
+                ref={modifiedImportRef}
+                hidden
+                type="file"
+                accept="application/json,.json"
+                onChange={(event) => {
+                  void importJsonFile('modified', event.target.files?.[0])
+                  event.target.value = ''
+                }}
+              />
+              <Button className="!min-h-7 !px-2 !py-1" variant="ghost" onClick={loadExample}><Sparkles size={15} />Example</Button>
+            </div>
           </div>
         </div>
 
